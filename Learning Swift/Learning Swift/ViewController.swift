@@ -135,7 +135,114 @@ class ViewController: UIViewController {
             print("min is \(bounds.min) and max is \(bounds.max)");
         }
         
+        print(greet(person: "erhu", from: "dalian"));
+        
+        
+        print(arithmeticMean(2.2,2.2,3.3));
+        
+        
+        var someInt = 3
+        var anotherInt = 107
+        swapTwoInts(&someInt, &anotherInt)//函数中要改变参数值要加在参数定义前加 inout 关键字 ,需要在参数名前加 & 符
+        
+        print("func : swapTwoInts == > someInt \(someInt) , anotherInt \(anotherInt)");
+        
+        let anotherSwapTwoInts = swapTwoInts;//函数类型直接赋值
+        anotherSwapTwoInts(&someInt,&anotherInt);
+        
+        print("func : anotherSwapTwoInts == >  someInt \(someInt) , anotherInt \(anotherInt)");
+        
+        
+        var currentValue = 3;
+        let moveNearerToZero = chooseStepFunction(backward: currentValue > 0);//moveNearerToZero是一个指向函数的常量
+        while currentValue > 0 {
+            print("\(currentValue)... ")
+            currentValue = moveNearerToZero(currentValue);
+        }
+        print("zero!")
+        
+     
+        //函数闭包
+        let names = ["Chris", "Alex", "Ewa", "Barry", "Daniella"];
+        var reversedNames = names.sorted { (s1 : String, s2 : String) -> Bool in
+            //闭包表达式参数 可以是 in-out 参数，但不能设定默认值。
+            return s1 < s2;
+        };
+        print(reversedNames);
+        
+        reversedNames = names.sorted(by: {s1 ,s2 in s1 < s2}); //单表达式闭包隐式返回
+        print(reversedNames);
+        
+        reversedNames = names.sorted(by: {$0 > $1}); //参数名称缩写 ,可以直接通过 $0，$1，$2 来顺序调用闭包的参数，以此类推
+        print(reversedNames);
+        
+        reversedNames = names.sorted(by: <);// Swift 的 String 类型定义了关于大于号（>）的字符串实现，其作为一个函数接受两个 String 类型的参数并返回 Bool 类型的值
+        print(reversedNames);
+        
+        let digitNames = [
+            0: "Zero", 1: "One", 2: "Two",   3: "Three", 4: "Four",
+            5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine"
+        ]
+        
+        let numbers : Array = [16,58,510];
+        let strings = numbers.map {
+            (number) -> String in
+            var number = number
+            var output = ""
+            repeat {
+                output = digitNames[number % 10]! + output
+                number /= 10
+            } while number > 0
+            return output
+        }
+        print(strings);
+        
+        
+        let incrementByTen = makeIncrementer(foIncrement: 10);
+        var numTen = incrementByTen();
+        numTen = incrementByTen();
+
+        let incrementBySeven = makeIncrementer(foIncrement: 7);
+        var numSeven = incrementBySeven();
+        numSeven = incrementBySeven();
+        numTen = incrementByTen();
+        
+        print("incrementBySeven: \(numSeven)  incrementByTen :\(numTen)");
+        
+        
+        //逃逸闭包
+        var completionHandlers: [() -> Void] = [];//使闭包“逃逸”出函数的方法是，将这个闭包保存在一个函数外部定义的变量中。
+        func someFunctionWithEscapingClosure(completionHandler : @escaping () -> Void) {
+            //例如:启动异步操作的函数接受一个闭包参数作为 completion handler。这类函数会在异步操作开始之后立刻返回，但是闭包直到异步操作结束后才会被调用。在这种情况下，闭包需要“逃逸”出函数，因为闭包需要在函数返回之后被调用
+            completionHandlers.append(completionHandler);
+        }
+        
+        //非逃逸闭包
+        func someFunctionWithNonescapingClosure(closure: () -> Void) {
+            closure()
+        }
+        
+        class SomeClass {
+            var x = 10
+            func doSomething() {
+                someFunctionWithEscapingClosure { self.x = 100 }
+                someFunctionWithNonescapingClosure { x = 200 }
+            }
+        }
+        
+        let instance = SomeClass()
+        instance.doSomething()
+        print(instance.x)
+        // 打印出 "200"
+        
+        completionHandlers.first?()
+        print(instance.x)
+        // 打印出 "100"
+        
     }
+    
+    
+    
     
     //函数
     func minMax(argentLael array: [Int]) -> (min: Int, max: Int)? { //
@@ -151,6 +258,46 @@ class ViewController: UIViewController {
         }
         return (currentMin, currentMax)
     }
+    
+    func greet (person : String ,from homeTown : String) -> String {
+        return "Hello \(person)!  Glad you could visit from \(homeTown)."
+    }
+    
+    
+    //可以接受零个或多个值 （类似数组）
+    func arithmeticMean(_ numbers : Double...) -> Double {
+        var total: Double = 0
+        for number in numbers {
+            total += number
+        }
+        return total / Double(numbers.count)
+    }
+    
+    func swapTwoInts(_ a :inout Int,_ b : inout Int) {
+        let temporaryA = a
+        a = b
+        b = temporaryA
+    }
+    
+    //嵌套函数
+    func chooseStepFunction(backward: Bool) -> (Int) -> Int {
+        func stepForward(input: Int) -> Int { return input + 1 }
+        func stepBackward(input: Int) -> Int { return input - 1 }
+        return backward ? stepBackward : stepForward
+    }
+
+    //闭包
+    func makeIncrementer(foIncrement amount : Int) -> () -> Int {
+        var runningTotal = 0
+        func incrementer() -> Int{
+            runningTotal += amount;
+            return runningTotal;
+        }
+        return incrementer;
+    }
+    
+    
+
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
