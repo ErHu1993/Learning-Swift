@@ -7,9 +7,36 @@
 //
 
 import UIKit
+//枚举
+enum CompassPoint {
+    case north
+    case south
+    case east
+    case west
+}
+
+enum Planet: Int {//当使用整数作为原始值时，隐式赋值的值依次递增1。如果第一个枚举成员没有设置原始值，其原始值将为0。
+    case mercury = 1, venus, earth, mars, jupiter, saturn, uranus, neptune
+}
+
+
+enum Barcode {
+    case upc(Int, Int, Int, Int)
+    case qrCode(String)
+}
+
+//递归枚举  indirect关键字标识递归，可修饰枚举，也可修饰枚举中某成员
+indirect enum ArithmeticExpression {
+    case number(Int)
+    case addition(ArithmeticExpression, ArithmeticExpression)
+    case multiplication(ArithmeticExpression, ArithmeticExpression)
+}
 
 class ViewController: UIViewController {
 
+    //枚举赋值放到函数外可以消除警告
+    var directionToHead = CompassPoint.west;
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -210,38 +237,163 @@ class ViewController: UIViewController {
         print("incrementBySeven: \(numSeven)  incrementByTen :\(numTen)");
         
         
-        //逃逸闭包
-        var completionHandlers: [() -> Void] = [];//使闭包“逃逸”出函数的方法是，将这个闭包保存在一个函数外部定义的变量中。
-        func someFunctionWithEscapingClosure(completionHandler : @escaping () -> Void) {
-            //例如:启动异步操作的函数接受一个闭包参数作为 completion handler。这类函数会在异步操作开始之后立刻返回，但是闭包直到异步操作结束后才会被调用。在这种情况下，闭包需要“逃逸”出函数，因为闭包需要在函数返回之后被调用
-            completionHandlers.append(completionHandler);
+        
+        //枚举
+       
+        directionToHead = CompassPoint.north;
+        
+        switch directionToHead {
+        case .north:
+            print("Lots of planets have a north")
+        case .south:
+            print("Watch out for penguins")
+        case .east:
+            print("Where the sun rises")
+        case .west:
+            print("Where the skies are blue")
         }
         
-        //非逃逸闭包
-        func someFunctionWithNonescapingClosure(closure: () -> Void) {
-            closure()
+//        var productBarcode = Barcode.upc(8, 85909, 51226, 3)
+//            productBarcode = .qrCode("ABCDEFGHIJKLMNOP")
+//        
+//        switch productBarcode {//警告处理类似上面枚举
+//        case .upc(let numberSystem, let manufacturer, let product, let check): //如果一个枚举成员的所有关联值都被提取为常量，或者都被提取为变量，为了简洁，你可以只在成员名称前标注一个let或者var 例如: case let .upc(numberSystem, manufacturer, product, check):
+//            print("UPC: \(numberSystem), \(manufacturer), \(product), \(check).")
+//        case .qrCode(let productCode):
+//            print("QR code: \(productCode).")
+//        print("QR code: \(productCode).")
+//    }
+        
+        print("Planet.earth.rawValue == > \(Planet.earth.rawValue)");
+        
+        
+        let positionToFind = 11;
+        let somePlanet = Planet(rawValue: positionToFind);
+        if (somePlanet == nil) {
+            print("There isn't a planet at position \(positionToFind)")
         }
         
-        class SomeClass {
-            var x = 10
-            func doSomething() {
-                someFunctionWithEscapingClosure { self.x = 100 }
-                someFunctionWithNonescapingClosure { x = 200 }
+        let five = ArithmeticExpression.number(5);
+        let four = ArithmeticExpression.number(4);
+        let sum = ArithmeticExpression.addition(five, four);
+        let product = ArithmeticExpression.multiplication(sum, ArithmeticExpression.number(2));
+        
+        
+        print("(5 + 4) * 2 = > \(evaluate(product))");
+        
+        
+        //类(引用类型)和结构体（值类型）
+        struct Resolution {
+            var width = 0
+            var height = 0
+        }
+        class VideoMode {
+            var resolution = Resolution()
+            var interlaced = false
+            var frameRate = 0.0
+            var name: String?
+        }
+//        字符串、数组、和字典类型的赋值与复制行为
+//        Swift 中，许多基本类型，诸如String，Array和Dictionary类型均以结构体的形式实现。这意味着被赋值给新的常量或变量，或者被传入函数或方法中时，它们的值会被拷贝。
+//        Objective-C 中NSString，NSArray和NSDictionary类型均以类的形式实现，而并非结构体。它们在被赋值或者被传入函数或方法时，不会发生值拷贝，而是传递现有实例的引用。
+        
+        
+        class DataImporter {
+            /*
+             DataImporter 是一个负责将外部文件中的数据导入的类。
+             这个类的初始化会消耗不少时间。
+             */
+            var fileName = "data.txt"
+            // 这里会提供数据导入功能
+        }
+        
+        class DataManager {
+            lazy var importer = DataImporter()
+            var data = [String]()
+            // 这里会提供数据管理功能
+        }
+        
+        let manager = DataManager()
+        manager.data.append("Some data")
+        manager.data.append("Some more data")
+        // DataImporter 实例的 importer 属性还没有被创建
+        print(manager.importer.fileName);// DataImporter 实例的 importer 属性现在被创建了
+        //注意: 如果一个被标记为 lazy 的属性在没有初始化时就同时被多个线程访问，则无法保证该属性只会被初始化一次。
+        
+        
+        
+        //属性
+        struct Point {
+            var x = 0.0, y = 0.0
+        }
+        struct Size {
+            var width = 0.0, height = 0.0
+        }
+        
+        struct Rect{
+            
+            var origin = Point();
+            var size = Size();
+            var center : Point{
+                //自定义getter,setter属性
+                get{
+                    let centerX = origin.x + (size.width) / 2;
+                    let centerY = origin.y + (size.height / 2);
+                    return Point(x: centerX,y:centerY);
+                }
+                
+                set(newCenter) { //也可以不使用newCenter 系统提供newValue参数
+                    origin.x = newCenter.x - (size.width / 2)
+                    origin.y = newCenter.y - (size.height / 2)
+                }
             }
         }
         
-        let instance = SomeClass()
-        instance.doSomething()
-        print(instance.x)
-        // 打印出 "200"
+        var square = Rect(origin: Point(x: 0.0, y: 0.0),
+                          size: Size(width: 10.0, height: 10.0))
+        square.center = Point(x: 15.0, y: 15.0)
+        print("square.origin is now at (\(square.origin.x), \(square.origin.y))")
         
-        completionHandlers.first?()
-        print(instance.x)
-        // 打印出 "100"
+        
+        //属性观察器
+        //属性通过 in-out 方式传入函数，willSet 和 didSet 也会调用。这是因为 in-out 参数采用了拷入拷出模式：
+        class StepCounter {
+            var totalSteps: Int = 0 {
+                willSet(newTotalSteps) {
+                    print("About to set totalSteps to \(newTotalSteps)")
+                }
+                didSet {
+                    if totalSteps > oldValue  {
+                        print("Added \(totalSteps - oldValue) steps")
+                    }
+                }
+            }
+        }
+        let stepCounter = StepCounter()
+        stepCounter.totalSteps = 200
+        // About to set totalSteps to 200
+        // Added 200 steps
+        stepCounter.totalSteps = 360
+        // About to set totalSteps to 360
+        // Added 160 steps
+        stepCounter.totalSteps = 896
+        // About to set totalSteps to 896
+        // Added 536 steps
+        
         
     }
     
-    
+    //枚举递归返回值计算
+    func evaluate(_ expression: ArithmeticExpression) -> Int {
+        switch expression {
+        case let .number(num): // 获值
+            return num
+        case .addition(let left, let right):
+            return evaluate(left) + evaluate(right)
+        case let .multiplication(left, right):
+            return evaluate(left) * evaluate(right)
+        }
+    }
     
     
     //函数
@@ -295,8 +447,6 @@ class ViewController: UIViewController {
         }
         return incrementer;
     }
-    
-    
 
     
     override func didReceiveMemoryWarning() {
