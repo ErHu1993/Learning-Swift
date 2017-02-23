@@ -152,7 +152,6 @@ class ViewController: UIViewController {
             print("iOS 10-");
 
         }
-     
         
         if  let bounds = minMax(argentLael: [8, -6, 2, 109, 3, 71]){
             print("min is \(bounds.min) and max is \(bounds.max)");
@@ -379,6 +378,11 @@ class ViewController: UIViewController {
         stepCounter.totalSteps = 896
         // About to set totalSteps to 896
         // Added 536 steps
+        
+        // 在全局或局部范围都可以定义计算型变量和为存储型变量定义观察器。计算型变量跟计算属性一样，返回一个计算结果而不是存储值，声明格式也完全一样。全局的常量或变量都是延迟计算的，跟延迟存储属性相似，不同的地方在于，全局的常量或变量不需要标记lazy修饰符。
+
+        
+        
         
         
     }
